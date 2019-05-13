@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="Project 2/src"/>
+	<classpathentry kind="lib" path="Project 2/lib/gdx-1.9.8.jar"/>
+	<classpathentry kind="lib" path="Project 2/lib/gdx-backend-headless-1.9.8.jar"/>
+	<classpathentry kind="lib" path="Project 2/lib/gdx-backend-lwjgl-1.9.8.jar"/>
+	<classpathentry kind="lib" path="Project 2/lib/gdx-platform-1.9.8-natives-desktop.jar"/>
+	<classpathentry kind="lib" path="Project 2/lib/jinput-2.0.5.jar"/>
+	<classpathentry kind="lib" path="Project 2/lib/jinput-platform-2.0.5-natives-linux.jar"/>
+	<classpathentry kind="lib" path="Project 2/lib/jinput-platform-2.0.5-natives-osx.jar"/>
+	<classpathentry kind="lib" path="Project 2/lib/jinput-platform-2.0.5-natives-windows.jar"/>
+	<classpathentry kind="lib" path="Project 2/lib/jlayer-1.0.1-gdx.jar"/>
+	<classpathentry kind="lib" path="Project 2/lib/jorbis-0.0.17.jar"/>
+	<classpathentry kind="lib" path="Project 2/lib/jutils-1.0.0.jar"/>
+	<classpathentry kind="lib" path="Project 2/lib/log4j-api-2.11.0.jar"/>
+	<classpathentry kind="lib" path="Project 2/lib/log4j-core-2.11.0.jar"/>
+	<classpathentry kind="lib" path="Project 2/lib/lwjgl_util-2.9.2.jar"/>
+	<classpathentry kind="lib" path="Project 2/lib/lwjgl-2.9.2.jar"/>
+	<classpathentry kind="lib" path="Project 2/lib/lwjgl-platform-2.9.2-natives-linux.jar"/>
+	<classpathentry kind="lib" path="Project 2/lib/lwjgl-platform-2.9.2-natives-osx.jar"/>
+	<classpathentry kind="lib" path="Project 2/lib/lwjgl-platform-2.9.2-natives-windows.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
