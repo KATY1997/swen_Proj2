@@ -1,6 +1,8 @@
 package mycontroller;
 
 import controller.CarController;
+import mycontroller.strategy.PathStrategy;
+import mycontroller.strategy.StrategyFactory;
 import world.Car;
 import java.util.HashMap;
 
@@ -17,38 +19,41 @@ public class MyAutoController extends CarController{
 		// Car Speed to move at
 		private final int CAR_MAX_SPEED = 1;
 		
+		private PathStrategy strategy;
+		
 		public MyAutoController(Car car) {
 			super(car);
+			this.strategy = StrategyFactory.getStrategy();
 		}
 		
 		// Coordinate initialGuess;
 		// boolean notSouth = true;
 		@Override
 		public void update() {
-			// Gets what the car can see
-			HashMap<Coordinate, MapTile> currentView = getView();
-			
-			// checkStateChange();
-			if(getSpeed() < CAR_MAX_SPEED){       // Need speed to turn and progress toward the exit
-				applyForwardAcceleration();   // Tough luck if there's a wall in the way
-			}
-			if (isFollowingWall) {
-				// If wall no longer on left, turn left
-				if(!checkFollowingWall(getOrientation(), currentView)) {
-					turnLeft();
-				} else {
-					// If wall on left and wall straight ahead, turn right
-					if(checkWallAhead(getOrientation(), currentView)) {
-						turnRight();
-					}
-				}
-			} else {
-				// Start wall-following (with wall on left) as soon as we see a wall straight ahead
-				if(checkWallAhead(getOrientation(),currentView)) {
-					turnRight();
-					isFollowingWall = true;
-				}
-			}
+//			// Gets what the car can see
+//			HashMap<Coordinate, MapTile> currentView = getView();
+//			
+//			// checkStateChange();
+//			if(getSpeed() < CAR_MAX_SPEED){       // Need speed to turn and progress toward the exit
+//				applyForwardAcceleration();   // Tough luck if there's a wall in the way
+//			}
+//			if (isFollowingWall) {
+//				// If wall no longer on left, turn left
+//				if(!checkFollowingWall(getOrientation(), currentView)) {
+//					turnLeft();
+//				} else {
+//					// If wall on left and wall straight ahead, turn right
+//					if(checkWallAhead(getOrientation(), currentView)) {
+//						turnRight();
+//					}
+//				}
+//			} else {
+//				// Start wall-following (with wall on left) as soon as we see a wall straight ahead
+//				if(checkWallAhead(getOrientation(),currentView)) {
+//					turnRight();
+//					isFollowingWall = true;
+//				}
+//			}
 		}
 
 		/**
