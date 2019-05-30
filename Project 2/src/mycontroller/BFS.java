@@ -3,10 +3,7 @@ package mycontroller;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Queue;
-
-import com.sun.xml.internal.bind.v2.model.core.ID;
 
 import tiles.MapTile;
 import tiles.MapTile.Type;
@@ -25,7 +22,6 @@ public class BFS {
 		HashMap<Coordinate, MapTile> worldMap = Sensor.getInstance().getWorldMap();
 		Coordinate curPos = Sensor.getInstance().getCurrentPos();
 		HashMap<Coordinate, Coordinate> previousTrack = new HashMap<>();
-		HashMap<Coordinate, Integer> distance = new HashMap<>();
 
 		// add current position as the start
 		path.add(curPos);

@@ -31,6 +31,7 @@ public abstract class PathStrategy implements IVarationStrategy {
 
 	private boolean isFollowingWall = false; // This is set to true when the car starts sticking to a wall.
 
+	private boolean isMoving = false;
 	// Car Speed to move at
 	private final int CAR_MAX_SPEED = 1;
 
@@ -51,25 +52,33 @@ public abstract class PathStrategy implements IVarationStrategy {
 	 */
 	public String explore() {
 
-		if (Sensor.getInstance().getCurrentPos().equals(new Coordinate(23,2))) {
-			System.out.println("hhh");
-		}
-		if (isFollowingWall) {
-			// If wall no longer on left, turn left
-			if (!checkFollowingWall(Sensor.getInstance().getOrientation(), Sensor.getInstance().getCurrentView())) {
-				return "left";
+//		if (Sensor.getInstance().getCurrentPos().equals(new Coordinate(23,2))) {
+//			System.out.println("hhh");
+//		}
+		if (!isMoving) {
+			isMoving = true;
+			return "forward";
+		}else {
+			
+			if (isFollowingWall) {
+				// If wall no longer on left, turn left
+				if(!checkFollowingWall(Sensor.getInstance().getOrientation(), Sensor.getInstance().getCurrentView())) {
+					return "left";
+				} else {
+					// If wall on left and wall straight ahead, turn right
+					if(checkWallAhead(Sensor.getInstance().getOrientation(), Sensor.getInstance().getCurrentView())) {
+						return "right";
+					}
+				}
 			} else {
-				// If wall on left and wall straight ahead, turn right
-				if (checkWallAhead(Sensor.getInstance().getOrientation(), Sensor.getInstance().getCurrentView())) {
+				// Start wall-following (with wall on left) as soon as we see a wall straight ahead
+				if(checkWallAhead(Sensor.getInstance().getOrientation(), Sensor.getInstance().getCurrentView())) {
+					isFollowingWall = true;
 					return "right";
 				}
 			}
-		} else {
-			// Start wall-following (with wall on left) as soon as we see a wall straight ahead
-			if (checkWallAhead(Sensor.getInstance().getOrientation(), Sensor.getInstance().getCurrentView())) {
-				isFollowingWall = true;
-				return "right";
-			}
+			
+			
 		}
 
 		return "forward";
@@ -79,20 +88,26 @@ public abstract class PathStrategy implements IVarationStrategy {
 	 * find the shortest way to the nearest parcel
 	 */
 	public String findParcel() {
-		int shortestStep = 999999;
-		Coordinate firstDest = null;
-		for (Coordinate parcelDestination : Sensor.getInstance().getParcels()) {
-			ArrayList<Coordinate> path = BFS.shortestPath(parcelDestination);
-			if (path.size() < shortestStep) {
-				shortestStep = path.size();
-				firstDest = parcelDestination;
+		if (!isMoving) {
+			isMoving = true;
+			return "forward";
+		}else {
+			
+			int shortestStep = 999999;
+			Coordinate firstDest = null;
+			for (Coordinate parcelDestination : Sensor.getInstance().getParcels()) {
+				ArrayList<Coordinate> path = BFS.shortestPath(parcelDestination);
+				if (path.size() < shortestStep) {
+					shortestStep = path.size();
+					firstDest = parcelDestination;
+				}
 			}
+			
+			ArrayList<Coordinate> way = BFS.shortestPath(firstDest);
+			Coordinate nextPos = way.get(way.size() - 2);
+			
+			return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
 		}
-
-		ArrayList<Coordinate> way = BFS.shortestPath(firstDest);
-		Coordinate nextPos = way.get(way.size() - 2);
-
-		return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
 
 	}
 
@@ -192,6 +207,29 @@ public abstract class PathStrategy implements IVarationStrategy {
 			return checkEast(currentView);
 		case WEST:
 			return checkSouth(currentView);
+		default:
+			return false;
+		}	
+	}
+	
+	/**
+	 * Check if the wall is on your right hand side given your orientation
+	 * return true if a wall in your right
+	 * @param orientation
+	 * @param currentView
+	 * @return
+	 */
+	private boolean checkRight(WorldSpatial.Direction orientation, HashMap<Coordinate, MapTile> currentView) {
+		
+		switch(orientation){
+		case EAST:
+			return checkSouth(currentView);
+		case NORTH:
+			return checkEast(currentView);
+		case SOUTH:
+			return checkWest(currentView);
+		case WEST:
+			return checkNorth(currentView);
 		default:
 			return false;
 		}	

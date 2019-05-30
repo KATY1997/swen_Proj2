@@ -1,5 +1,7 @@
 package mycontroller;
 
+import com.badlogic.gdx.graphics.Camera;
+
 import controller.CarController;
 import mycontroller.strategy.PathStrategy;
 import mycontroller.strategy.StrategyFactory;
@@ -25,6 +27,7 @@ public class MyAutoController extends CarController {
 		
 //		String command = strategy.update(CarStateMachine.getInstance().getCarState());
 
+		System.out.println(command);
 		parseCommand(command);
 	}
 
