@@ -32,6 +32,7 @@ public class SimpleAutoController extends CarController {
 	public void update() {
 		// Gets what the car can see
 		HashMap<Coordinate, MapTile> currentView = getView();
+
 		
 		// checkStateChange();
 		if(getSpeed() < CAR_MAX_SPEED){       // Need speed to turn and progress toward the exit
