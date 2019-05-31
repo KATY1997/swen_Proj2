@@ -1,6 +1,5 @@
 package mycontroller.strategy;
 
-import exceptions.UnsupportedModeException;
 import swen30006.driving.Simulation;
 
 public class StrategyFactory {

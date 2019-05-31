@@ -13,7 +13,7 @@ public class CarStateMachine {
 	private static CarState carState;
 	private static CarState previousState;
 	private static final int MIN_HEALTH = 10; // minimum health limit when car need to find health
-	private static final int HEALTH_THRESHOLD = 20; // a limit that the car do not need to find health anymore
+	private static final int HEALTH_THRESHOLD = 30; // a limit that the car do not need to find health anymore
 
 	private CarStateMachine() {
 		carState = CarState.EXPLOREMAP; // construct as EXPLOREMAP in default
@@ -39,34 +39,41 @@ public class CarStateMachine {
 		System.out.println(carState);
 		switch (carState) {
 		case EXPLOREMAP:
-			if (controller.numParcelsFound() < controller.numParcels() && Sensor.getInstance().getParcels().size() > 0) {
+			if (controller.numParcelsFound() < controller.numParcels()
+					&& Sensor.getInstance().getParcels().size() > 0) {
 				this.carState = CarState.FINDPARCEL;
+				this.previousState = CarState.EXPLOREMAP;
+				//				System.out.println("switched");
 			} else if (controller.getHealth() <= MIN_HEALTH) {
 				this.carState = CarState.FINDHEALTH;
+				this.previousState = CarState.EXPLOREMAP;
 			}
-			this.previousState = CarState.EXPLOREMAP;
 			break;
 		case FINDPARCEL:
-			if ((Sensor.getInstance().getParcels().size() == 0 && controller.numParcelsFound() < controller.numParcels() ) ) {
+			if ((Sensor.getInstance().getParcels().size() == 0
+					&& controller.numParcelsFound() < controller.numParcels())) {
 				this.carState = CarState.EXPLOREMAP;
-			} else if (controller.numParcelsFound() == controller.numParcels() && Sensor.getInstance().getExit() !=null) {
+				this.previousState = CarState.FINDPARCEL;
+			} else if (controller.numParcelsFound() == controller.numParcels()
+					&& Sensor.getInstance().getExit() != null) {
 				this.carState = CarState.FINDEXIT;
-			}else if (controller.getHealth() <= MIN_HEALTH) {
+				this.previousState = CarState.FINDPARCEL;
+			} else if (controller.getHealth() <= MIN_HEALTH) {
 				this.carState = CarState.FINDHEALTH;
+				this.previousState = CarState.FINDPARCEL;
 			}
-			this.previousState = CarState.FINDPARCEL;
 			break;
 		case FINDEXIT:
 			if (controller.getHealth() <= MIN_HEALTH) {
 				this.carState = CarState.FINDHEALTH;
+				this.previousState = CarState.FINDEXIT;
 			}
-			this.previousState = CarState.FINDEXIT;
 			break;
 		case FINDHEALTH:
 			if (controller.getHealth() >= HEALTH_THRESHOLD) {
 				this.carState = previousState;
+				this.previousState = CarState.FINDHEALTH;
 			}
-			this.previousState = CarState.FINDHEALTH;
 		}
 	}
 

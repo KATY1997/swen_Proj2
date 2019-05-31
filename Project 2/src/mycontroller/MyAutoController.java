@@ -1,36 +1,40 @@
 package mycontroller;
 
-import com.badlogic.gdx.graphics.Camera;
-
 import controller.CarController;
-import mycontroller.strategy.PathStrategy;
-import mycontroller.strategy.StrategyFactory;
+import utilities.Coordinate;
 import world.Car;
 
 public class MyAutoController extends CarController {
-
-	private PathStrategy strategy;
+	
+	PathFinderFacade facade;
 
 	public MyAutoController(Car car) {
 		super(car);
-		this.strategy = StrategyFactory.getStrategy();
+		facade = new PathFinderFacade();
 	}
 
 	@Override
 	public void update() {
 
+		// update sensor and carState each move
 		Sensor.getInstance().update(this);
 		CarStateMachine.getInstance().update(this);
 
-		// using facade, return a command
-		String command = PathFinderUtil.findPath(CarStateMachine.getInstance().getCarState(),strategy);
+		if (Sensor.getInstance().getCurrentPos().equals(new Coordinate(3, 8))) {
+			System.out.println("test");
+		}
 		
-//		String command = strategy.update(CarStateMachine.getInstance().getCarState());
-
+		// using facade, return a command
+		String command = facade.findPath();
 		System.out.println(command);
+		
 		parseCommand(command);
 	}
 
+	/**
+	 * parce the returned command into car's operation
+	 * @param command
+	 */
 	private void parseCommand(String command) {
 		switch (command) {
 		case "left":
@@ -47,6 +51,9 @@ public class MyAutoController extends CarController {
 			break;
 		case "brake":
 			applyBrake();
+			break;
+		default:
+			applyForwardAcceleration();
 			break;
 		}
 	}

@@ -3,6 +3,8 @@ package mycontroller;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.badlogic.gdx.maps.Map;
+
 import controller.CarController;
 import tiles.MapTile;
 import tiles.TrapTile;
@@ -11,23 +13,25 @@ import utilities.Coordinate;
 import world.WorldSpatial;
 
 /**
- * A pure fabrication class called sensor to store informations in the map
+ * A pure fabrication class called sensor to store informations in the map, the sensor will 
+ * store what the car has seen(currentView) and put it into worldMap
  * @author pengkedi
  *
  */
 public class Sensor {
 	
 	private static Sensor sensor;
-	private static ArrayList<Coordinate> parcels = new ArrayList<>();
-	private static HashMap<Coordinate, MapTile> currentView;
-	private static HashMap<Coordinate, MapTile> worldMap;
-	private static Coordinate exit;
-	private static Coordinate currentPos;
-	private static WorldSpatial.Direction orientation;
+	private ArrayList<Coordinate> parcels = new ArrayList<>();
+	private ArrayList<Coordinate> healthTraps = new ArrayList<>();
+	private HashMap<Coordinate, MapTile> currentView;
+	private HashMap<Coordinate, MapTile> worldMap;
+	private Coordinate exit;
+	private Coordinate currentPos;
+	private WorldSpatial.Direction orientation;
+	private static int MAPHEIGHT;
+	private static int MAPWIDTH;
 	
 	
-	
-
 	private Sensor(){}
 	
 	public static Sensor getInstance(){
@@ -54,19 +58,22 @@ public class Sensor {
 		
 		scanCurrentView();
 		
-//		for (Coordinate coordinate : parcels) {
-//			System.out.println("parcels");
-//			System.out.println(coordinate);
-//		}
-		
-		
 		// remove parcel from parcel list if a parcel has been collected
-		
 		for (int i = 0; i < parcels.size(); i++) {
 			if (parcels.get(i).equals(currentPos)) {
 				this.parcels.remove(parcels.get(i));
 			}
 		}
+		
+//		// remove water from healthTrap list if a healthTile been collected
+//		if (currentView.get(currentPos).isType(Type.TRAP)) {
+//			TrapTile tile =(TrapTile) currentView.get(currentPos);
+//		}
+//		for (int i = 0; i < healthTraps.size(); i++) {
+//			if (healthTraps.get(i).equals(currentPos) ) {
+//				this.healthTraps.remove(parcels.get(i));
+//			}
+//		}
 		
 	}
 	
@@ -76,18 +83,12 @@ public class Sensor {
 	 * @return
 	 */
 	private void updateWorldMap() {
+		
 		currentView.forEach((k,v)-> {
-			// find those tile which is not ROAD or WALL
-			if (!v.isType(Type.ROAD) || !v.isType(Type.WALL)) {
-					this.worldMap.replace(k, v);
+			if (worldMap.containsKey(k)) {
+				this.worldMap.replace(k, v);
 			}
 		} );
-//		for (Coordinate c : currentView.keySet()) {
-//			// find those tile which is not ROAD or WALL
-//			if (!currentView.get(c).isType(Type.ROAD) || !currentView.get(c).isType(Type.WALL)) {
-//				this.worldMap.replace(c, currentView.get(c));
-//			}
-//		}
 		
 	}
 
@@ -99,12 +100,14 @@ public class Sensor {
 	 * scan the currentView to locate parcel and store it in car's sensor, if there is any
 	 * store location of EXIT
 	 */
-	public static void scanCurrentView() {
-		currentView.forEach((k,v)->{
+	public void scanCurrentView() {
+		this.currentView.forEach((k,v)->{
 			if (v.isType(Type.TRAP)) {
-				TrapTile pTrap = (TrapTile) v;
-				if (pTrap.getTrap().equals("parcel")) {
+				TrapTile tile = (TrapTile) v;
+				if (tile.getTrap().equals("parcel")) {
 					sensor.addParcel(k);
+				}else if (tile.getTrap().equals("water") || tile.getTrap().equals("health")) {
+					healthTraps.add(k);
 				}
 			}else if (v.isType(Type.FINISH)) {
 				sensor.setExit(k);
@@ -143,15 +146,15 @@ public class Sensor {
 	}
 
 	public Coordinate getCurrentPos() {
-		return currentPos;
+		return this.currentPos;
 	}
 
 	public WorldSpatial.Direction getOrientation() {
-		return orientation;
+		return this.orientation;
 	}
 
 	public Coordinate getExit() {
-		return exit;
+		return this.exit;
 	}
 
 	public void setExit(Coordinate exit) {
@@ -159,8 +162,29 @@ public class Sensor {
 	}
 	
 	public HashMap<Coordinate, MapTile> getWorldMap() {
-		return worldMap;
+		return this.worldMap;
 	}
 	
+	/**
+	 * Return the coordinates of health trap in the world map
+	 * @return true if ther is 
+	 */
+	public ArrayList<Coordinate> getHealthTrap(){
+		return this.healthTraps;
+	}
+
+	/**
+	 * detect if the car is standing on ice
+	 * @return
+	 */
+	public boolean standOnIce() {
+		if (currentView.get(currentPos).isType(Type.TRAP)) {
+			TrapTile tile = (TrapTile)currentView.get(currentPos);
+			if (tile.getTrap().equals("health")) {
+				return true;
+			}
+		}
+		return false;
+	}
 	
 }

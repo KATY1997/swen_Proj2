@@ -3,6 +3,7 @@ package mycontroller.strategy;
 import mycontroller.BFS;
 import mycontroller.CarStateMachine.CarState;
 import tiles.MapTile;
+import tiles.TrapTile;
 import tiles.MapTile.Type;
 import utilities.Coordinate;
 import world.WorldSpatial;
@@ -15,7 +16,7 @@ import java.util.Queue;
 import com.sun.org.apache.bcel.internal.generic.NEW;
 
 import controller.CarController;
-import mycontroller.PathFinderUtil;
+import mycontroller.PathFinderFacade;
 import mycontroller.Sensor;
 
 /**
@@ -24,7 +25,7 @@ import mycontroller.Sensor;
  * @author pengkedi
  *
  */
-public abstract class PathStrategy implements IVarationStrategy {
+public abstract class PathStrategy implements IStrategy {
 
 	// How many minimum units the wall is away from the player.
 	private int wallSensitivity = 1;
@@ -34,51 +35,37 @@ public abstract class PathStrategy implements IVarationStrategy {
 	private boolean isMoving = false;
 	// Car Speed to move at
 	private final int CAR_MAX_SPEED = 1;
-
-	//	/**
-	//	 * find water or ice for the car
-	//	 * @return
-	//	 */
-	//	public String findHealthTrap() {
-	////		return PathFinderUtil.findHealthTrap();
-	//	}
-	//	
-	//	public String findPath(CarState carState) {
-	////		return PathFinderUtil.findPath(carState);
-	//	}
+	
+	public static ArrayList<String> avoid = new ArrayList<>();
+	public static int searchRange;
 
 	/**
 	 * follow the wall when in EXPLOREMAP
 	 */
 	public String explore() {
 
-//		if (Sensor.getInstance().getCurrentPos().equals(new Coordinate(23,2))) {
-//			System.out.println("hhh");
-//		}
 		if (!isMoving) {
 			isMoving = true;
 			return "forward";
-		}else {
-			
+		} else {
+
 			if (isFollowingWall) {
-				// If wall no longer on left, turn left
-				if(!checkFollowingWall(Sensor.getInstance().getOrientation(), Sensor.getInstance().getCurrentView())) {
-					return "left";
+				// If wall no longer on right, turn right
+				if (!checkRight(Sensor.getInstance().getOrientation(), Sensor.getInstance().getCurrentView())) {
+					return "right";
 				} else {
-					// If wall on left and wall straight ahead, turn right
-					if(checkWallAhead(Sensor.getInstance().getOrientation(), Sensor.getInstance().getCurrentView())) {
-						return "right";
+					// If wall or water on left and wall straight ahead, turn right
+					if (checkAhead(Sensor.getInstance().getOrientation(), Sensor.getInstance().getCurrentView())) {
+						return "left";
 					}
 				}
 			} else {
 				// Start wall-following (with wall on left) as soon as we see a wall straight ahead
-				if(checkWallAhead(Sensor.getInstance().getOrientation(), Sensor.getInstance().getCurrentView())) {
+				if (checkAhead(Sensor.getInstance().getOrientation(), Sensor.getInstance().getCurrentView())) {
 					isFollowingWall = true;
-					return "right";
+					return "left";
 				}
 			}
-			
-			
 		}
 
 		return "forward";
@@ -88,27 +75,83 @@ public abstract class PathStrategy implements IVarationStrategy {
 	 * find the shortest way to the nearest parcel
 	 */
 	public String findParcel() {
+		Coordinate nextPos = null;
 		if (!isMoving) {
 			isMoving = true;
 			return "forward";
-		}else {
-			
+		} else {
+
 			int shortestStep = 999999;
-			Coordinate firstDest = null;
+			Coordinate dest = null;
+			// in case more than one parcel in the sensor's list, find the shortest one
 			for (Coordinate parcelDestination : Sensor.getInstance().getParcels()) {
-				ArrayList<Coordinate> path = BFS.shortestPath(parcelDestination);
-				if (path.size() < shortestStep) {
+				ArrayList<Coordinate> path = BFS.shortestPath(parcelDestination, avoid);
+				if (path != null && path.size() > 0 && path.size() < shortestStep) {
 					shortestStep = path.size();
-					firstDest = parcelDestination;
+					dest = parcelDestination;
 				}
 			}
-			
-			ArrayList<Coordinate> way = BFS.shortestPath(firstDest);
-			Coordinate nextPos = way.get(way.size() - 2);
-			
-			return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
+
+			if (dest != null) {
+				// from parcel to current coordinate
+				ArrayList<Coordinate> way = BFS.shortestPath(dest,avoid);
+				nextPos = way.get(1);
+				return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
+			}
+			return explore();
+
 		}
 
+	}
+
+	/**
+	 * find the shortest way to the exit using BFS
+	 */
+	public String findExit() {
+		
+		if (Sensor.getInstance().getExit() != null) {
+			ArrayList<Coordinate> way = BFS.shortestPath(Sensor.getInstance().getExit(),avoid);
+			Coordinate nextPos = way.size() >= 2 ? way.get(1) : way.get(0);
+			return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
+		}
+		return explore();
+	}
+
+	/**
+	 * find the way to nearest health trap
+	 * 
+	 * @return
+	 */
+	public String findHealthTrap() {
+		if (!isMoving) {
+			isMoving = true;
+			return "forward";
+		} else {
+			if (Sensor.getInstance().getHealthTrap().size() > 0) {
+
+				int shortestStep = 999999;
+				Coordinate destination = null;
+				Coordinate nextPos = null;
+				// in case more than one healthTrap in the sensor's list, find the shortest one
+				for (Coordinate c : Sensor.getInstance().getHealthTrap()) {
+//					ArrayList<Coordinate> path = BFS.shortestPath(c);
+//					if (path != null && path.size() > 0 && path.size() < shortestStep) {
+//						shortestStep = path.size();
+//						destination = c;
+//					}
+					
+					if (c != null) {
+						// from parcel to current coordinate
+						ArrayList<Coordinate> way = BFS.shortestPath(destination,avoid);
+						
+						nextPos = way.size()>2?way.get(1):way.get(0);
+						return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
+					}
+				}
+
+			}
+			return explore();
+		}
 	}
 
 	/**
@@ -171,12 +214,15 @@ public abstract class PathStrategy implements IVarationStrategy {
 
 	/**
 	 * Check if you have a wall in front of you!
-	 * @param orientation the orientation we are in based on WorldSpatial
-	 * @param currentView what the car can currently see
+	 * 
+	 * @param orientation
+	 *            the orientation we are in based on WorldSpatial
+	 * @param currentView
+	 *            what the car can currently see
 	 * @return
 	 */
-	private boolean checkWallAhead(WorldSpatial.Direction orientation, HashMap<Coordinate, MapTile> currentView){
-		switch(orientation){
+	private boolean checkAhead(WorldSpatial.Direction orientation, HashMap<Coordinate, MapTile> currentView) {
+		switch (orientation) {
 		case EAST:
 			return checkEast(currentView);
 		case NORTH:
@@ -189,16 +235,17 @@ public abstract class PathStrategy implements IVarationStrategy {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Check if the wall is on your left hand side given your orientation
+	 * 
 	 * @param orientation
 	 * @param currentView
 	 * @return
 	 */
 	private boolean checkFollowingWall(WorldSpatial.Direction orientation, HashMap<Coordinate, MapTile> currentView) {
-		
-		switch(orientation){
+
+		switch (orientation) {
 		case EAST:
 			return checkNorth(currentView);
 		case NORTH:
@@ -209,19 +256,20 @@ public abstract class PathStrategy implements IVarationStrategy {
 			return checkSouth(currentView);
 		default:
 			return false;
-		}	
+		}
 	}
-	
+
 	/**
 	 * Check if the wall is on your right hand side given your orientation
 	 * return true if a wall in your right
+	 * 
 	 * @param orientation
 	 * @param currentView
 	 * @return
 	 */
 	private boolean checkRight(WorldSpatial.Direction orientation, HashMap<Coordinate, MapTile> currentView) {
-		
-		switch(orientation){
+
+		switch (orientation) {
 		case EAST:
 			return checkSouth(currentView);
 		case NORTH:
@@ -232,62 +280,76 @@ public abstract class PathStrategy implements IVarationStrategy {
 			return checkNorth(currentView);
 		default:
 			return false;
-		}	
+		}
 	}
-	
+
 	/**
-	 * Method below just iterates through the list and check in the correct coordinates.
-	 * i.e. Given your current position is 10,10
-	 * checkEast will check up to wallSensitivity amount of tiles to the right.
-	 * checkWest will check up to wallSensitivity amount of tiles to the left.
-	 * checkNorth will check up to wallSensitivity amount of tiles to the top.
-	 * checkSouth will check up to wallSensitivity amount of tiles below.
+	 * Method below just iterates through the list and check in the correct
+	 * coordinates. i.e. Given your current position is 10,10 checkEast will
+	 * check up to wallSensitivity amount of tiles to the right. checkWest will
+	 * check up to wallSensitivity amount of tiles to the left. checkNorth will
+	 * check up to wallSensitivity amount of tiles to the top. checkSouth will
+	 * check up to wallSensitivity amount of tiles below.
 	 */
-	public boolean checkEast(HashMap<Coordinate, MapTile> currentView){
+	public boolean checkEast(HashMap<Coordinate, MapTile> currentView) {
 		// Check tiles to my right
 		Coordinate currentPosition = Sensor.getInstance().getCurrentPos();
-		for(int i = 0; i <= wallSensitivity; i++){
-			MapTile tile = currentView.get(new Coordinate(currentPosition.x+i, currentPosition.y));
-			if(tile.isType(MapTile.Type.WALL)){
+		for (int i = 0; i <= wallSensitivity; i++) {
+			MapTile tile = currentView.get(new Coordinate(currentPosition.x + i, currentPosition.y));
+			if (needToAvoid(avoid, tile)) {
 				return true;
 			}
 		}
 		return false;
 	}
-	
-	public boolean checkWest(HashMap<Coordinate,MapTile> currentView){
+
+	public boolean checkWest(HashMap<Coordinate, MapTile> currentView) {
 		// Check tiles to my left
 		Coordinate currentPosition = Sensor.getInstance().getCurrentPos();
-		for(int i = 0; i <= wallSensitivity; i++){
-			MapTile tile = currentView.get(new Coordinate(currentPosition.x-i, currentPosition.y));
-			if(tile.isType(MapTile.Type.WALL)){
+		for (int i = 0; i <= wallSensitivity; i++) {
+			MapTile tile = currentView.get(new Coordinate(currentPosition.x - i, currentPosition.y));
+			if (needToAvoid(avoid, tile)) {
 				return true;
 			}
 		}
 		return false;
 	}
-	
-	public boolean checkNorth(HashMap<Coordinate,MapTile> currentView){
+
+	public boolean checkNorth(HashMap<Coordinate, MapTile> currentView) {
 		// Check tiles to towards the top
 		Coordinate currentPosition = Sensor.getInstance().getCurrentPos();
-		for(int i = 0; i <= wallSensitivity; i++){
-			MapTile tile = currentView.get(new Coordinate(currentPosition.x, currentPosition.y+i));
-			if(tile.isType(MapTile.Type.WALL)){
+		for (int i = 0; i <= wallSensitivity; i++) {
+			MapTile tile = currentView.get(new Coordinate(currentPosition.x, currentPosition.y + i));
+			if (needToAvoid(avoid, tile)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean checkSouth(HashMap<Coordinate, MapTile> currentView) {
+		// Check tiles towards the bottom
+		Coordinate currentPosition = Sensor.getInstance().getCurrentPos();
+		for (int i = 0; i <= wallSensitivity; i++) {
+			MapTile tile = currentView.get(new Coordinate(currentPosition.x, currentPosition.y - i));
+			if (needToAvoid(avoid, tile)) {
 				return true;
 			}
 		}
 		return false;
 	}
 	
-	public boolean checkSouth(HashMap<Coordinate,MapTile> currentView){
-		// Check tiles towards the bottom
-		Coordinate currentPosition = Sensor.getInstance().getCurrentPos();
-		for(int i = 0; i <= wallSensitivity; i++){
-			MapTile tile = currentView.get(new Coordinate(currentPosition.x, currentPosition.y-i));
-			if(tile.isType(MapTile.Type.WALL)){
+	public static boolean needToAvoid(ArrayList<String> avoid, MapTile tile) {
+		if (tile.isType(Type.WALL)) {
+			return true;
+		}else if (tile.isType(Type.TRAP)) {
+			TrapTile trapTile  = (TrapTile) tile;
+			if (avoid.contains(trapTile.getTrap())) {
 				return true;
 			}
 		}
+		
 		return false;
 	}
+
 }
