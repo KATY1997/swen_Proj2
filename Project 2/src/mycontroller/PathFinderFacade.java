@@ -31,12 +31,12 @@ public class PathFinderFacade {
 			command =  strategy.findParcel();
 			break;
 		case FINDHEALTH:
-			if (Sensor.getInstance().standOnIce()) {
-				command = "brake";
-			}else {
-				command = strategy.findHealthTrap();
-			}
-//			command =  strategy.explore();
+//			if (Sensor.getInstance().standOnIce()) {
+//				command = "brake";
+//			}else {
+//				command = strategy.findHealthTrap();
+//			}
+			command =  strategy.explore();
 			break;
 		}
 		return command;
