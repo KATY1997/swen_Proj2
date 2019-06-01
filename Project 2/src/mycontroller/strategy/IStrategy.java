@@ -1,11 +1,8 @@
 package mycontroller.strategy;
 
-import mycontroller.CarStateMachine.CarState;
-import world.WorldSpatial;
-
 /**
- * 
- * @author pengkedi
+ * An interface that defined methods in strategies
+ * @author kedi peng
  *
  */
 public interface IStrategy {

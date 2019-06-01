@@ -3,15 +3,17 @@ package mycontroller;
 import controller.CarController;
 
 /**
- * Represent the state of the car, handle state switch
+ * Represent the state of the car, handle state switch if meet change
+ * requirements. The car could be in one of the four states: EXPLOREMAP,
+ * FINDPARCEL, FINDEXIT, FINDHEALTH
  * 
- * @author pengkedi
+ * @author kedi peng
  *
  */
 public class CarStateMachine {
 	private static CarStateMachine carStateMachine = null;
-	private static CarState carState;
-	private static CarState previousState;
+	private CarState carState;
+	private CarState previousState;
 	private static final int MIN_HEALTH = 10; // minimum health limit when car need to find health
 	private static final int HEALTH_THRESHOLD = 30; // a limit that the car do not need to find health anymore
 

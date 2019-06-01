@@ -7,11 +7,15 @@ import java.util.Queue;
 
 import mycontroller.strategy.PathStrategy;
 import tiles.MapTile;
-import tiles.TrapTile;
-import tiles.MapTile.Type;
 import utilities.Coordinate;
-import world.World;
 
+/**
+ * This class is used to find the shortest path to car's current position in the
+ * map given a destination coordinate. It utilize the BFS algorithm
+ * 
+ * @author kedi peng
+ *
+ */
 public class BFS {
 
 	/**
@@ -24,78 +28,62 @@ public class BFS {
 		Queue<Coordinate> path = new LinkedList<>();
 		HashMap<Coordinate, MapTile> worldMap = Sensor.getInstance().getWorldMap();
 		Coordinate curPos = Sensor.getInstance().getCurrentPos();
-		HashMap<Coordinate, Coordinate> previousTrack = new HashMap<>();
+		HashMap<Coordinate, Coordinate> previousTrack = new HashMap<>();	// to track the path
 
 		// add current position as the start
 		path.add(parcel);
 		previousTrack.put(parcel, null);
-		
+
 		addSurrondCoordinates(path, worldMap, previousTrack, parcel, avoid);
 
 		while (!path.isEmpty()) {
 			Coordinate newCoord = path.poll();
 			// has find its goal
 			if (newCoord.equals(curPos)) {
-				return retrivePath(previousTrack,parcel,curPos);
+				return retrivePath(previousTrack, parcel, curPos);
 			}
-			addSurrondCoordinates(path, worldMap, previousTrack, newCoord,avoid);
+			addSurrondCoordinates(path, worldMap, previousTrack, newCoord, avoid);
 		}
 		return new ArrayList<Coordinate>();
-
 	}
-	
-	private static ArrayList<Coordinate> retrivePath(HashMap<Coordinate, Coordinate> previousTrack, Coordinate currentPos,Coordinate destination) {
+
+	/**
+	 * Get the shortest path from the previousTrack. It will construct an ArrayList of Coordinate 
+	 * representing the way
+	 * @param previousTrack
+	 * @param currentPos
+	 * @param destination
+	 * @return
+	 */
+	private static ArrayList<Coordinate> retrivePath(HashMap<Coordinate, Coordinate> previousTrack,
+			Coordinate currentPos, Coordinate destination) {
 		ArrayList<Coordinate> way = new ArrayList<>();
-		
+
 		way.add(destination);
 		int i = 0;
-		
-		while (previousTrack.containsKey(way.get(i))&& !way.contains(currentPos)) {
+
+		while (previousTrack.containsKey(way.get(i)) && !way.contains(currentPos)) {
 			way.add(previousTrack.get(way.get(i)));
 			i++;
 		}
-		
+
 		return way;
 	}
 
+	/**
+	 * add coordinates that are surrounded by the current position. Avoid predefined types which are
+	 * defined in each strategies
+	 * @param path
+	 * @param worldMap
+	 * @param previousTrack
+	 * @param curPos
+	 * @param avoid
+	 */
 	private static void addSurrondCoordinates(Queue<Coordinate> path, HashMap<Coordinate, MapTile> worldMap,
 			HashMap<Coordinate, Coordinate> previousTrack, Coordinate curPos, ArrayList<String> avoid) {
 		// add coordinates surround with currentPos
 		worldMap.forEach((k, v) -> {
-//			if (Sensor.getInstance().getCurrentPos().equals(new Coordinate(20, 17))) {
-//				System.out.println("test");
-//			}
-//			ArrayList<Coordinate> surrounds = new ArrayList<>();
-//			Coordinate eastPoint = new Coordinate(k.x+1, k.y);
-//			Coordinate westPoint = new Coordinate(k.x-1, k.y);
-//			Coordinate northPoint = new Coordinate(k.x, k.y+1);
-//			Coordinate southPoint = new Coordinate(k.x, k.y-1);
-//			
-//			if (worldMap.containsKey(eastPoint)) {
-//				if (!PathStrategy.needToAvoid(avoid, worldMap.get(eastPoint)) && !previousTrack.containsKey(k)) {
-//					path.add(k);
-//					previousTrack.put(k, curPos);
-//				}
-//			}
-//			if (worldMap.containsKey(westPoint)) {
-//				if (!PathStrategy.needToAvoid(avoid, worldMap.get(westPoint)) && !previousTrack.containsKey(k)) {
-//					path.add(k);
-//					previousTrack.put(k, curPos);
-//				}
-//			}
-//			if (worldMap.containsKey(northPoint)) {
-//				if (!PathStrategy.needToAvoid(avoid, worldMap.get(northPoint)) && !previousTrack.containsKey(k)) {
-//					path.add(k);
-//					previousTrack.put(k, curPos);
-//				}
-//			}
-//			if (worldMap.containsKey(southPoint)) {
-//				if (!PathStrategy.needToAvoid(avoid, worldMap.get(southPoint)) && !previousTrack.containsKey(k)) {
-//					path.add(k);
-//					previousTrack.put(k, curPos);
-//				}
-//			}
-			
+
 			if (k.x == curPos.x + 1 && k.y == curPos.y && !PathStrategy.needToAvoid(avoid, v)) {
 
 				if (!previousTrack.containsKey(k)) {
@@ -122,6 +110,5 @@ public class BFS {
 		});
 
 	}
-	
-	
+
 }

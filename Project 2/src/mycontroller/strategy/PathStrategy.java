@@ -1,28 +1,23 @@
 package mycontroller.strategy;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import mycontroller.BFS;
-import mycontroller.CarStateMachine.CarState;
+import mycontroller.Sensor;
 import tiles.MapTile;
-import tiles.TrapTile;
 import tiles.MapTile.Type;
+import tiles.TrapTile;
 import utilities.Coordinate;
 import world.WorldSpatial;
 import world.WorldSpatial.Direction;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Queue;
-
-import com.sun.org.apache.bcel.internal.generic.NEW;
-
-import controller.CarController;
-import mycontroller.PathFinderFacade;
-import mycontroller.Sensor;
-
 /**
- * common methods in both fuelstrategy and healthStratefgy
+ * common methods in both FuelStrategy and HealthStratefgy, it contains
+ * explore(), findParcel(), findExit() and findHealthTrap(), as well as some
+ * util methods
  * 
- * @author pengkedi
+ * @author kedi peng
  *
  */
 public abstract class PathStrategy implements IStrategy {
@@ -33,14 +28,13 @@ public abstract class PathStrategy implements IStrategy {
 	private boolean isFollowingWall = false; // This is set to true when the car starts sticking to a wall.
 
 	private boolean isMoving = false;
-	// Car Speed to move at
-	private final int CAR_MAX_SPEED = 1;
-	
+
+	// the type of traps that need to avoid when using BFS
 	public static ArrayList<String> avoid = new ArrayList<>();
 	public static int searchRange;
 
 	/**
-	 * follow the wall when in EXPLOREMAP
+	 * when in EXPLOREMAP state, just simply follow the wall
 	 */
 	public String explore() {
 
@@ -48,7 +42,6 @@ public abstract class PathStrategy implements IStrategy {
 			isMoving = true;
 			return "forward";
 		} else {
-
 			if (isFollowingWall) {
 				// If wall no longer on right, turn right
 				if (!checkRight(Sensor.getInstance().getOrientation(), Sensor.getInstance().getCurrentView())) {
@@ -67,7 +60,6 @@ public abstract class PathStrategy implements IStrategy {
 				}
 			}
 		}
-
 		return "forward";
 	}
 
@@ -94,12 +86,11 @@ public abstract class PathStrategy implements IStrategy {
 
 			if (dest != null) {
 				// from parcel to current coordinate
-				ArrayList<Coordinate> way = BFS.shortestPath(dest,avoid);
+				ArrayList<Coordinate> way = BFS.shortestPath(dest, avoid);
 				nextPos = way.get(1);
 				return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
 			}
 			return explore();
-
 		}
 
 	}
@@ -108,9 +99,9 @@ public abstract class PathStrategy implements IStrategy {
 	 * find the shortest way to the exit using BFS
 	 */
 	public String findExit() {
-		
+
 		if (Sensor.getInstance().getExit() != null) {
-			ArrayList<Coordinate> way = BFS.shortestPath(Sensor.getInstance().getExit(),avoid);
+			ArrayList<Coordinate> way = BFS.shortestPath(Sensor.getInstance().getExit(), avoid);
 			Coordinate nextPos = way.size() >= 2 ? way.get(1) : way.get(0);
 			return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
 		}
@@ -134,21 +125,15 @@ public abstract class PathStrategy implements IStrategy {
 				Coordinate nextPos = null;
 				// in case more than one healthTrap in the sensor's list, find the shortest one
 				for (Coordinate c : Sensor.getInstance().getHealthTrap()) {
-//					ArrayList<Coordinate> path = BFS.shortestPath(c);
-//					if (path != null && path.size() > 0 && path.size() < shortestStep) {
-//						shortestStep = path.size();
-//						destination = c;
-//					}
-					
+
 					if (c != null) {
 						// from parcel to current coordinate
-						ArrayList<Coordinate> way = BFS.shortestPath(destination,avoid);
-						
-						nextPos = way.size()>2?way.get(1):way.get(0);
+						ArrayList<Coordinate> way = BFS.shortestPath(destination, avoid);
+
+						nextPos = way.size() > 2 ? way.get(1) : way.get(0);
 						return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
 					}
 				}
-
 			}
 			return explore();
 		}
@@ -158,7 +143,9 @@ public abstract class PathStrategy implements IStrategy {
 	 * determine the command of the car given next position
 	 * 
 	 * @param curPos
+	 *            the first coordinate
 	 * @param nextPos
+	 *            the destination coordinate
 	 * @return
 	 */
 	private String getCommand(Coordinate curPos, Coordinate nextPos) {
@@ -231,29 +218,6 @@ public abstract class PathStrategy implements IStrategy {
 			return checkSouth(currentView);
 		case WEST:
 			return checkWest(currentView);
-		default:
-			return false;
-		}
-	}
-
-	/**
-	 * Check if the wall is on your left hand side given your orientation
-	 * 
-	 * @param orientation
-	 * @param currentView
-	 * @return
-	 */
-	private boolean checkFollowingWall(WorldSpatial.Direction orientation, HashMap<Coordinate, MapTile> currentView) {
-
-		switch (orientation) {
-		case EAST:
-			return checkNorth(currentView);
-		case NORTH:
-			return checkWest(currentView);
-		case SOUTH:
-			return checkEast(currentView);
-		case WEST:
-			return checkSouth(currentView);
 		default:
 			return false;
 		}
@@ -338,17 +302,17 @@ public abstract class PathStrategy implements IStrategy {
 		}
 		return false;
 	}
-	
+
 	public static boolean needToAvoid(ArrayList<String> avoid, MapTile tile) {
 		if (tile.isType(Type.WALL)) {
 			return true;
-		}else if (tile.isType(Type.TRAP)) {
-			TrapTile trapTile  = (TrapTile) tile;
+		} else if (tile.isType(Type.TRAP)) {
+			TrapTile trapTile = (TrapTile) tile;
 			if (avoid.contains(trapTile.getTrap())) {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 

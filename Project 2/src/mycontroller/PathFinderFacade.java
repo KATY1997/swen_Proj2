@@ -1,10 +1,13 @@
 package mycontroller;
 
-import com.sun.xml.internal.bind.v2.model.core.ID;
-
 import mycontroller.strategy.PathStrategy;
 import mycontroller.strategy.StrategyFactory;
 
+/**
+ * The facade class is used to handle the interaction of strategies
+ * @author kedi peng
+ *
+ */
 public class PathFinderFacade {
 
 	private PathStrategy strategy;
@@ -15,7 +18,8 @@ public class PathFinderFacade {
 	}
 
 	/**
-	 * 
+	 * This method will switch the state of the car, call corresponding method
+	 * based on the state
 	 * @return
 	 */
 	public String findPath() {
