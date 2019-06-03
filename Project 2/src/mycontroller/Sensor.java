@@ -30,8 +30,7 @@ public class Sensor {
 	private Coordinate currentPos;
 	private WorldSpatial.Direction orientation;
 
-	private Sensor() {
-	}
+	private Sensor() {}
 
 	public static Sensor getInstance() {
 		if (sensor == null) {
@@ -106,8 +105,11 @@ public class Sensor {
 				TrapTile tile = (TrapTile) v;
 				if (tile.getTrap().equals("parcel")) {
 					sensor.addParcel(k);
-				} else if (tile.getTrap().equals("water") || tile.getTrap().equals("health")) {
-					healthTraps.add(k);
+				} else if ((tile.getTrap().equals("water") || tile.getTrap().equals("health")) && healthTraps.size() < 5) {
+					
+					if (!healthTraps.contains(k)) {
+						healthTraps.add(k);
+					}
 				}
 			} else if (v.isType(Type.FINISH)) {
 				sensor.setExit(k);

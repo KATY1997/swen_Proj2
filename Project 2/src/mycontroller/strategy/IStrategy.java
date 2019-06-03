@@ -16,4 +16,7 @@ public interface IStrategy {
 	
 	public String findHealthTrap();
 	
+	public void addAvoidTiles();
+	
+	public void removeAvoidTiles();
 }

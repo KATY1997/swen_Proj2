@@ -101,6 +101,9 @@ public abstract class PathStrategy implements IStrategy {
 
 		if (Sensor.getInstance().getExit() != null) {
 			ArrayList<Coordinate> way = BFS.findShortestPath(Sensor.getInstance().getExit(), avoidTiles);
+			if (way.size() == 0) {
+				return explore();
+			}
 			Coordinate nextPos = way.size() >= 2 ? way.get(1) : way.get(0);
 			return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
 		}
@@ -117,24 +120,22 @@ public abstract class PathStrategy implements IStrategy {
 			isMoving = true;
 			return "forward";
 		} else {
-			if (Sensor.getInstance().getHealthTrap().size() > 0) {
 
-				int shortestStep = 999999;
-				Coordinate destination = null;
-				Coordinate nextPos = null;
-				// in case more than one healthTrap in the sensor's list, find the shortest one
-				for (Coordinate c : Sensor.getInstance().getHealthTrap()) {
+			int shortestStep = 999999;
+			Coordinate destination = null;
+			Coordinate nextPos = null;
 
-					if (c != null) {
-						// from parcel to current coordinate
-						ArrayList<Coordinate> way = BFS.findShortestPath(destination, avoidTiles);
-
-						nextPos = way.size() > 2 ? way.get(1) : way.get(0);
-						return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
-					}
+			for (Coordinate c : Sensor.getInstance().getHealthTrap()) {
+				ArrayList<Coordinate> path = BFS.findShortestPath(c, avoidTiles);
+				if (path.size() < shortestStep) {
+					destination = c;
 				}
 			}
-			return explore();
+
+			ArrayList<Coordinate> way = BFS.findShortestPath(destination, avoidTiles);
+			nextPos = way.size() > 2 ? way.get(1) : way.get(0);
+			return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
+
 		}
 	}
 
@@ -311,7 +312,6 @@ public abstract class PathStrategy implements IStrategy {
 				return true;
 			}
 		}
-
 		return false;
 	}
 

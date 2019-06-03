@@ -1,7 +1,10 @@
 package mycontroller;
 
+import org.omg.PortableServer.ServantLocatorPackage.CookieHolder;
+
 import mycontroller.strategy.PathStrategy;
 import mycontroller.strategy.StrategyFactory;
+import utilities.Coordinate;
 
 /**
  * The facade class is used to handle the interaction of strategies
@@ -35,12 +38,14 @@ public class PathFinderFacade {
 			command =  strategy.findParcel();
 			break;
 		case FINDHEALTH:
-//			if (Sensor.getInstance().detectIce()) {
-//				command = "brake";
-//			}else {
-//				command = strategy.findHealthTrap();
-//			}
-			command =  strategy.explore();
+			strategy.removeAvoidTiles();
+			if (Sensor.getInstance().detectIce()) {
+				command = "brake";
+			}else {
+				command = strategy.findHealthTrap();
+			}
+//			command =  strategy.explore();
+			strategy.addAvoidTiles();
 			break;
 		}
 		return command;
