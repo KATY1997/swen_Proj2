@@ -27,7 +27,9 @@ public abstract class PathStrategy implements IStrategy {
 
 	private boolean isFollowingWall = false; // This is set to true when the car starts sticking to a wall.
 
-	private boolean isMoving = false;
+	public boolean isMoving = false;
+	
+	public boolean canFlag = true;
 
 	// the type of traps that need to avoid when using BFS
 	public static ArrayList<String> avoidTiles = new ArrayList<>();
@@ -84,13 +86,20 @@ public abstract class PathStrategy implements IStrategy {
 			}
 
 			if (dest != null) {
+				//canFlag = false;
 				// from parcel to current coordinate
 				ArrayList<Coordinate> way = BFS.findShortestPath(dest, avoidTiles);
 				nextPos = way.get(1);
 				return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
+			}else if(dest == null && Sensor.getInstance().getParcels().size() > 0) {
+//				avoidTiles.remove("water");
+//				String cmd =  findParcel();
+//				avoidTiles.add("water");
+//				return cmd;
+				canFlag = true;
 			}
-			return explore();
 		}
+		return explore();
 
 	}
 
@@ -133,8 +142,21 @@ public abstract class PathStrategy implements IStrategy {
 			}
 
 			ArrayList<Coordinate> way = BFS.findShortestPath(destination, avoidTiles);
-			nextPos = way.size() > 2 ? way.get(1) : way.get(0);
-			return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
+			System.out.println("-----------------");
+
+			for (int i =0;i<way.size();i++){
+				System.out.print(way.get(i)+"$ ");
+				
+			}
+			System.out.println("-----------------");
+			if (way.size() == 1) {
+				Sensor.getInstance().removeHealthTrap(destination);
+				return explore();
+			}else {
+				
+				nextPos = way.size() >= 1 ? way.get(1) : way.get(0);
+				return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
+			}
 
 		}
 	}
@@ -150,8 +172,9 @@ public abstract class PathStrategy implements IStrategy {
 	 */
 	private String getCommand(Coordinate curPos, Coordinate nextPos) {
 		Direction orientation = Sensor.getInstance().getOrientation();
-
+		System.out.println(nextPos);
 		if (curPos.x > nextPos.x) {
+			System.out.println(orientation);
 			switch (orientation) {
 			case NORTH:
 				return "left";
@@ -223,6 +246,18 @@ public abstract class PathStrategy implements IStrategy {
 		}
 	}
 
+	public boolean checkNorth(HashMap<Coordinate, MapTile> currentView) {
+		// Check tiles to towards the top
+		Coordinate currentPosition = Sensor.getInstance().getCurrentPos();
+		for (int i = 0; i <= wallSensitivity; i++) {
+			MapTile tile = currentView.get(new Coordinate(currentPosition.x, currentPosition.y + i));
+			if (avoidCheck(avoidTiles, tile)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Check if the wall is on your right hand side given your orientation
 	 * return true if a wall in your right
@@ -272,18 +307,6 @@ public abstract class PathStrategy implements IStrategy {
 		Coordinate currentPosition = Sensor.getInstance().getCurrentPos();
 		for (int i = 0; i <= wallSensitivity; i++) {
 			MapTile tile = currentView.get(new Coordinate(currentPosition.x - i, currentPosition.y));
-			if (avoidCheck(avoidTiles, tile)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public boolean checkNorth(HashMap<Coordinate, MapTile> currentView) {
-		// Check tiles to towards the top
-		Coordinate currentPosition = Sensor.getInstance().getCurrentPos();
-		for (int i = 0; i <= wallSensitivity; i++) {
-			MapTile tile = currentView.get(new Coordinate(currentPosition.x, currentPosition.y + i));
 			if (avoidCheck(avoidTiles, tile)) {
 				return true;
 			}

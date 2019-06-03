@@ -186,4 +186,9 @@ public class Sensor {
 		return false;
 	}
 
+	public void removeHealthTrap(Coordinate c){
+		if (healthTraps.contains(c)) {
+			healthTraps.remove(c);
+		}
+	}
 }

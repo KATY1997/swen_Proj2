@@ -1,5 +1,6 @@
 package mycontroller;
 
+import org.apache.logging.log4j.core.util.SystemNanoClock;
 import org.omg.PortableServer.ServantLocatorPackage.CookieHolder;
 
 import mycontroller.strategy.PathStrategy;
@@ -35,19 +36,32 @@ public class PathFinderFacade {
 			command =  strategy.findExit();
 			break;
 		case FINDPARCEL:
+			
 			command =  strategy.findParcel();
+			if (strategy.canFlag) {
+				System.out.println("can");
+//				strategy.avoidTiles.remove("water");
+//				command =  strategy.findParcel();
+//				strategy.avoidTiles.add("water");
+				strategy.canFlag = false;
+			}
+//			
+			
 			break;
 		case FINDHEALTH:
 			strategy.removeAvoidTiles();
-			if (Sensor.getInstance().detectIce()) {
+			if (Sensor.getInstance().detectIce()  ) {
 				command = "brake";
+				strategy.isMoving = true;
 			}else {
 				command = strategy.findHealthTrap();
+				System.out.println(command + "}");
 			}
 //			command =  strategy.explore();
-			strategy.addAvoidTiles();
+			//strategy.addAvoidTiles();
 			break;
 		}
+		System.out.println(command + "{{{{{");
 		return command;
 	}
 
