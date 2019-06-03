@@ -30,8 +30,7 @@ public abstract class PathStrategy implements IStrategy {
 	private boolean isMoving = false;
 
 	// the type of traps that need to avoid when using BFS
-	public static ArrayList<String> avoid = new ArrayList<>();
-	public static int searchRange;
+	public static ArrayList<String> avoidTiles = new ArrayList<>();
 
 	/**
 	 * when in EXPLOREMAP state, just simply follow the wall
@@ -77,7 +76,7 @@ public abstract class PathStrategy implements IStrategy {
 			Coordinate dest = null;
 			// in case more than one parcel in the sensor's list, find the shortest one
 			for (Coordinate parcelDestination : Sensor.getInstance().getParcels()) {
-				ArrayList<Coordinate> path = BFS.shortestPath(parcelDestination, avoid);
+				ArrayList<Coordinate> path = BFS.findShortestPath(parcelDestination, avoidTiles);
 				if (path != null && path.size() > 0 && path.size() < shortestStep) {
 					shortestStep = path.size();
 					dest = parcelDestination;
@@ -86,7 +85,7 @@ public abstract class PathStrategy implements IStrategy {
 
 			if (dest != null) {
 				// from parcel to current coordinate
-				ArrayList<Coordinate> way = BFS.shortestPath(dest, avoid);
+				ArrayList<Coordinate> way = BFS.findShortestPath(dest, avoidTiles);
 				nextPos = way.get(1);
 				return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
 			}
@@ -101,7 +100,7 @@ public abstract class PathStrategy implements IStrategy {
 	public String findExit() {
 
 		if (Sensor.getInstance().getExit() != null) {
-			ArrayList<Coordinate> way = BFS.shortestPath(Sensor.getInstance().getExit(), avoid);
+			ArrayList<Coordinate> way = BFS.findShortestPath(Sensor.getInstance().getExit(), avoidTiles);
 			Coordinate nextPos = way.size() >= 2 ? way.get(1) : way.get(0);
 			return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
 		}
@@ -128,7 +127,7 @@ public abstract class PathStrategy implements IStrategy {
 
 					if (c != null) {
 						// from parcel to current coordinate
-						ArrayList<Coordinate> way = BFS.shortestPath(destination, avoid);
+						ArrayList<Coordinate> way = BFS.findShortestPath(destination, avoidTiles);
 
 						nextPos = way.size() > 2 ? way.get(1) : way.get(0);
 						return getCommand(Sensor.getInstance().getCurrentPos(), nextPos);
@@ -260,7 +259,7 @@ public abstract class PathStrategy implements IStrategy {
 		Coordinate currentPosition = Sensor.getInstance().getCurrentPos();
 		for (int i = 0; i <= wallSensitivity; i++) {
 			MapTile tile = currentView.get(new Coordinate(currentPosition.x + i, currentPosition.y));
-			if (needToAvoid(avoid, tile)) {
+			if (avoidCheck(avoidTiles, tile)) {
 				return true;
 			}
 		}
@@ -272,7 +271,7 @@ public abstract class PathStrategy implements IStrategy {
 		Coordinate currentPosition = Sensor.getInstance().getCurrentPos();
 		for (int i = 0; i <= wallSensitivity; i++) {
 			MapTile tile = currentView.get(new Coordinate(currentPosition.x - i, currentPosition.y));
-			if (needToAvoid(avoid, tile)) {
+			if (avoidCheck(avoidTiles, tile)) {
 				return true;
 			}
 		}
@@ -284,7 +283,7 @@ public abstract class PathStrategy implements IStrategy {
 		Coordinate currentPosition = Sensor.getInstance().getCurrentPos();
 		for (int i = 0; i <= wallSensitivity; i++) {
 			MapTile tile = currentView.get(new Coordinate(currentPosition.x, currentPosition.y + i));
-			if (needToAvoid(avoid, tile)) {
+			if (avoidCheck(avoidTiles, tile)) {
 				return true;
 			}
 		}
@@ -296,14 +295,14 @@ public abstract class PathStrategy implements IStrategy {
 		Coordinate currentPosition = Sensor.getInstance().getCurrentPos();
 		for (int i = 0; i <= wallSensitivity; i++) {
 			MapTile tile = currentView.get(new Coordinate(currentPosition.x, currentPosition.y - i));
-			if (needToAvoid(avoid, tile)) {
+			if (avoidCheck(avoidTiles, tile)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public static boolean needToAvoid(ArrayList<String> avoid, MapTile tile) {
+	public static boolean avoidCheck(ArrayList<String> avoid, MapTile tile) {
 		if (tile.isType(Type.WALL)) {
 			return true;
 		} else if (tile.isType(Type.TRAP)) {

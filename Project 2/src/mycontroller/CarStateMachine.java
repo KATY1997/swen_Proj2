@@ -14,7 +14,7 @@ public class CarStateMachine {
 	private static CarStateMachine carStateMachine = null;
 	private CarState carState;
 	private CarState previousState;
-	private static final int MIN_HEALTH = 10; // minimum health limit when car need to find health
+	private static final int MIN_HEALTH = 25; // minimum health limit when car need to find health
 	private static final int HEALTH_THRESHOLD = 30; // a limit that the car do not need to find health anymore
 
 	private CarStateMachine() {

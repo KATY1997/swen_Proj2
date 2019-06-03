@@ -24,7 +24,7 @@ public class BFS {
 	 * @param destination
 	 * @return
 	 */
-	public static ArrayList<Coordinate> shortestPath(Coordinate parcel, ArrayList<String> avoid) {
+	public static ArrayList<Coordinate> findShortestPath(Coordinate parcel, ArrayList<String> avoid) {
 		Queue<Coordinate> path = new LinkedList<>();
 		HashMap<Coordinate, MapTile> worldMap = Sensor.getInstance().getWorldMap();
 		Coordinate curPos = Sensor.getInstance().getCurrentPos();
@@ -34,7 +34,7 @@ public class BFS {
 		path.add(parcel);
 		previousTrack.put(parcel, null);
 
-		addSurrondCoordinates(path, worldMap, previousTrack, parcel, avoid);
+		addSurrondingCoordinates(path, worldMap, previousTrack, parcel, avoid);
 
 		while (!path.isEmpty()) {
 			Coordinate newCoord = path.poll();
@@ -42,7 +42,7 @@ public class BFS {
 			if (newCoord.equals(curPos)) {
 				return retrivePath(previousTrack, parcel, curPos);
 			}
-			addSurrondCoordinates(path, worldMap, previousTrack, newCoord, avoid);
+			addSurrondingCoordinates(path, worldMap, previousTrack, newCoord, avoid);
 		}
 		return new ArrayList<Coordinate>();
 	}
@@ -79,29 +79,29 @@ public class BFS {
 	 * @param curPos
 	 * @param avoid
 	 */
-	private static void addSurrondCoordinates(Queue<Coordinate> path, HashMap<Coordinate, MapTile> worldMap,
+	private static void addSurrondingCoordinates(Queue<Coordinate> path, HashMap<Coordinate, MapTile> worldMap,
 			HashMap<Coordinate, Coordinate> previousTrack, Coordinate curPos, ArrayList<String> avoid) {
 		// add coordinates surround with currentPos
 		worldMap.forEach((k, v) -> {
 
-			if (k.x == curPos.x + 1 && k.y == curPos.y && !PathStrategy.needToAvoid(avoid, v)) {
+			if (k.x == curPos.x + 1 && k.y == curPos.y && !PathStrategy.avoidCheck(avoid, v)) {
 
 				if (!previousTrack.containsKey(k)) {
 					path.add(k);
 					previousTrack.put(k, curPos);
 				}
-			} else if (k.x == curPos.x - 1 && k.y == curPos.y && !PathStrategy.needToAvoid(avoid, v)) {
+			} else if (k.x == curPos.x - 1 && k.y == curPos.y && !PathStrategy.avoidCheck(avoid, v)) {
 
 				if (!previousTrack.containsKey(k)) {
 					path.add(k);
 					previousTrack.put(k, curPos);
 				}
-			} else if (k.x == curPos.x && k.y == curPos.y + 1 && !PathStrategy.needToAvoid(avoid, v)) {
+			} else if (k.x == curPos.x && k.y == curPos.y + 1 && !PathStrategy.avoidCheck(avoid, v)) {
 				if (!previousTrack.containsKey(k)) {
 					path.add(k);
 					previousTrack.put(k, curPos);
 				}
-			} else if (k.x == curPos.x && k.y == curPos.y - 1 && !PathStrategy.needToAvoid(avoid, v)) {
+			} else if (k.x == curPos.x && k.y == curPos.y - 1 && !PathStrategy.avoidCheck(avoid, v)) {
 				if (!previousTrack.containsKey(k)) {
 					path.add(k);
 					previousTrack.put(k, curPos);

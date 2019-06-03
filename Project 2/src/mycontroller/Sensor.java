@@ -174,7 +174,7 @@ public class Sensor {
 	 * 
 	 * @return true if the car stands on ice
 	 */
-	public boolean standOnIce() {
+	public boolean detectIce() {
 		if (currentView.get(currentPos).isType(Type.TRAP)) {
 			TrapTile tile = (TrapTile) currentView.get(currentPos);
 			if (tile.getTrap().equals("health")) {

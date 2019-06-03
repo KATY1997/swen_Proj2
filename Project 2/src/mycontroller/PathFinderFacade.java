@@ -35,7 +35,7 @@ public class PathFinderFacade {
 			command =  strategy.findParcel();
 			break;
 		case FINDHEALTH:
-//			if (Sensor.getInstance().standOnIce()) {
+//			if (Sensor.getInstance().detectIce()) {
 //				command = "brake";
 //			}else {
 //				command = strategy.findHealthTrap();
